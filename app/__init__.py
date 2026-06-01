@@ -14,4 +14,8 @@ def create_app():
         from app import models
         db.create_all()
 
+        # Blueprint қосу
+        from app.routes.courses import courses_bp
+        app.register_blueprint(courses_bp, url_prefix='/api')
+
     return app
