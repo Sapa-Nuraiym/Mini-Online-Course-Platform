@@ -1,0 +1,76 @@
+{% extends "base.html" %}
+{% block title %}Курстар{% endblock %}
+{% block content %}
+<div class="container">
+    <div class="card">
+        <h1>📚 Курстар</h1>
+
+        <input type="text" id="search" placeholder="Курс іздеу...">
+        <button onclick="loadCourses()">🔍 Іздеу</button>
+
+        <div id="courseList" style="margin-top:20px;"></div>
+    </div>
+
+    <div class="card" style="margin-top:20px;">
+        <h1>➕ Жаңа курс қосу</h1>
+        <div id="formMessage"></div>
+        <form id="courseForm">
+            <label>Курс атауы</label>
+            <input type="text" id="title" placeholder="Курс атауы" required>
+
+            <label>Сипаттама</label>
+            <input type="text" id="description" placeholder="Қысқаша сипаттама">
+
+            <label>Санат</label>
+            <input type="text" id="category" placeholder="Python, Web, т.б.">
+
+            <label>User ID (мұғалім)</label>
+            <input type="number" id="user_id" placeholder="1" required>
+
+            <button type="submit">Курс жасау</button>
+        </form>
+    </div>
+</div>
+<script>
+async function loadCourses() {
+    const search = document.getElementById('search').value;
+    const res = await fetch('/api/courses?search=' + search);
+    const courses = await res.json();
+    const list = document.getElementById('courseList');
+    if (courses.length === 0) {
+        list.innerHTML = '<p>Курс табылмады</p>';
+        return;
+    }
+    list.innerHTML = courses.map(c => `
+        <div style="border:1px solid #ddd; padding:15px; margin:10px 0; border-radius:6px;">
+            <b>${c.title}</b> <span style="color:#888">[${c.category || 'санатсыз'}]</span>
+            <p>${c.description || ''}</p>
+        </div>
+    `).join('');
+}
+
+document.getElementById('courseForm').addEventListener('submit', async function(e) {
+    e.preventDefault();
+    const msg = document.getElementById('formMessage');
+    const res = await fetch('/api/courses', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({
+            title: document.getElementById('title').value,
+            description: document.getElementById('description').value,
+            category: document.getElementById('category').value,
+            user_id: parseInt(document.getElementById('user_id').value)
+        })
+    });
+    const data = await res.json();
+    if (res.ok) {
+        msg.innerHTML = '<div class="success">✅ Курс жасалды!</div>';
+        loadCourses();
+    } else {
+        msg.innerHTML = '<div class="error">❌ ' + (data.error || data.errors?.join(', ')) + '</div>';
+    }
+});
+
+loadCourses();
+</script>
+{% endblock %}

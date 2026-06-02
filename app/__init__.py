@@ -16,13 +16,14 @@ def create_app():
         from app import models
         db.create_all()
 
-        # Blueprints қосу
         from app.routes.courses import courses_bp
         from app.routes.auth import auth_bp, bcrypt
+        from app.routes.views import views_bp
 
         bcrypt.init_app(app)
 
         app.register_blueprint(courses_bp, url_prefix='/api')
         app.register_blueprint(auth_bp, url_prefix='/api')
+        app.register_blueprint(views_bp)
 
     return app
