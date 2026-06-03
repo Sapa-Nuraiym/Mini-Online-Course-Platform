@@ -1,40 +1,36 @@
 {% extends "base.html" %}
-{% block title %}Тіркелу{% endblock %}
 {% block content %}
-<div class="container">
-    <div class="card">
-        <h1>📝 Тіркелу</h1>
-        <div id="message"></div>
-        <form id="registerForm">
-            <label>Username</label>
-            <input type="text" id="username" placeholder="username жаз" required>
-
-            <label>Email</label>
-            <input type="email" id="email" placeholder="email@example.com" required>
-
-            <label>Құпия сөз</label>
-            <input type="password" id="password" placeholder="кемінде 6 символ" required>
-
-            <label>Роль</label>
-            <select id="role">
-                <option value="student">Студент</option>
-                <option value="teacher">Мұғалім</option>
-            </select>
-
-            <button type="submit">Тіркелу</button>
-        </form>
-        <div class="link"><a href="/login">Аккаунт бар ма? Кіру</a></div>
+<h1>Тіркелу</h1>
+<form id="register-form">
+    <div class="form-group">
+        <label>Пайдаланушы аты:</label>
+        <input type="text" id="username" required>
     </div>
-</div>
-<script>
-document.getElementById('registerForm').addEventListener('submit', async function(e) {
-    e.preventDefault();
-    const msg = document.getElementById('message');
-    msg.innerHTML = '';
+    <div class="form-group">
+        <label>Email:</label>
+        <input type="email" id="email" required>
+    </div>
+    <div class="form-group">
+        <label>Құпия сөз:</label>
+        <input type="password" id="password" required>
+    </div>
+    <div class="form-group">
+        <label>Рол:</label>
+        <select id="role">
+            <option value="student">Студент</option>
+            <option value="teacher">Мұғалім</option>
+        </select>
+    </div>
+    <button type="submit">Тіркелу</button>
+</form>
+<div id="message"></div>
 
-    const res = await fetch('/api/auth/register', {
+<script>
+document.getElementById('register-form').onsubmit = async (e) => {
+    e.preventDefault();
+    const res = await fetch('/api/register', {
         method: 'POST',
-        headers: {'Content-Type': 'application/json'},
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
             username: document.getElementById('username').value,
             email: document.getElementById('email').value,
@@ -43,11 +39,9 @@ document.getElementById('registerForm').addEventListener('submit', async functio
         })
     });
     const data = await res.json();
-    if (res.ok) {
-        msg.innerHTML = '<div class="success">✅ Тіркелу сәтті! <a href="/login">Кіру</a></div>';
-    } else {
-        msg.innerHTML = '<div class="error">❌ ' + (data.error || data.errors?.join(', ')) + '</div>';
-    }
-});
+    document.getElementById('message').innerHTML = res.ok
+        ? '<p class="success">Тіркелу сәтті! <a href="/login-page">Кіру</a></p>'
+        : `<p class="error">${JSON.stringify(data.errors || data.error)}</p>`;
+};
 </script>
 {% endblock %}
