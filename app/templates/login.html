@@ -1,34 +1,49 @@
 {% extends "base.html" %}
+{% block title %}Кіру{% endblock %}
 {% block content %}
-<h1>Кіру</h1>
-<form id="login-form">
-    <div class="form-group">
-        <label>Email:</label>
-        <input type="email" id="email" required>
+<div class="container">
+    <div class="card" style="max-width:480px; margin: 50px auto;">
+        <h1>🔐 Кіру</h1>
+        <div id="message"></div>
+        <div class="form-group">
+            <label>Email</label>
+            <input type="email" id="email" placeholder="example@mail.com">
+        </div>
+        <div class="form-group">
+            <label>Құпия сөз</label>
+            <input type="password" id="password" placeholder="••••••••">
+        </div>
+        <button type="button" id="loginBtn">Кіру →</button>
+        <div class="link-text">Аккаунт жоқ па? <a href="/register">Тіркелу</a></div>
     </div>
-    <div class="form-group">
-        <label>Құпия сөз:</label>
-        <input type="password" id="password" required>
-    </div>
-    <button type="submit">Кіру</button>
-</form>
-<div id="message"></div>
-
+</div>
 <script>
-document.getElementById('login-form').onsubmit = async (e) => {
-    e.preventDefault();
-    const res = await fetch('/api/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-            email: document.getElementById('email').value,
-            password: document.getElementById('password').value
-        })
-    });
-    const data = await res.json();
-    document.getElementById('message').innerHTML = res.ok
-        ? `<p class="success">Қош келдіңіз, ${data.user.username}!</p>`
-        : `<p class="error">${data.error}</p>`;
-};
+document.getElementById('loginBtn').addEventListener('click', async function() {
+    const msg = document.getElementById('message');
+    const email = document.getElementById('email').value;
+    const password = document.getElementById('password').value;
+
+    if (!email || !password) {
+        msg.innerHTML = '<div class="error">❌ Email және құпия сөзді енгізіңіз!</div>';
+        return;
+    }
+
+    try {
+        const res = await fetch('/api/auth/login', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({email, password})
+        });
+        const data = await res.json();
+        if (res.ok) {
+            msg.innerHTML = '<div class="success">✅ Қош келдіңіз, ' + data.user.username + '!</div>';
+            setTimeout(() => window.location.href = '/profile', 1000);
+        } else {
+            msg.innerHTML = '<div class="error">❌ ' + (data.error || 'Қате') + '</div>';
+        }
+    } catch(e) {
+        msg.innerHTML = '<div class="error">❌ Сервермен байланыс жоқ. Сервер іске қосылған ба?</div>';
+    }
+});
 </script>
 {% endblock %}

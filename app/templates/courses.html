@@ -1,79 +1,73 @@
 {% extends "base.html" %}
+{% block title %}Курстар{% endblock %}
 {% block content %}
-<h1>Курстар тізімі</h1>
-
-<form id="search-form" style="margin-bottom:20px">
-    <input type="text" id="search" placeholder="Курс іздеу...">
-    <button type="submit">Іздеу</button>
-</form>
-
-<div id="courses-list"></div>
-
-<h2>Жаңа курс қосу</h2>
-<form id="course-form">
-    <div class="form-group">
-        <label>Атауы:</label>
-        <input type="text" id="title" required>
+<div class="container">
+    <div class="card">
+        <h1>📚 Курстар</h1>
+        <div class="search-bar">
+            <input type="text" id="search" placeholder="Курс іздеу...">
+            <button onclick="loadCourses()">🔍 Іздеу</button>
+        </div>
+        <div id="courseList" class="course-grid"></div>
     </div>
-    <div class="form-group">
-        <label>Сипаттама:</label>
-        <textarea id="description"></textarea>
+</div>
+
+<!-- Модал терезе -->
+<div id="modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.7); z-index:1000; overflow-y:auto;">
+    <div style="background:white; max-width:800px; margin:40px auto; border-radius:16px; padding:30px; position:relative;">
+        <button onclick="closeModal()" style="position:absolute; top:15px; right:15px; width:auto; padding:8px 15px; background:#e94560;">✕ Жабу</button>
+        <h2 id="modalTitle" style="margin-bottom:20px;"></h2>
+        <div id="lessonList"></div>
     </div>
-    <div class="form-group">
-        <label>Санат:</label>
-        <input type="text" id="category">
-    </div>
-    <button type="submit">Қосу</button>
-</form>
-<div id="message"></div>
+</div>
 
 <script>
-async function loadCourses(search = '') {
-    const url = search ? `/api/courses?search=${search}` : '/api/courses';
-    const res = await fetch(url);
+async function loadCourses() {
+    const search = document.getElementById('search').value;
+    const res = await fetch('/api/courses?search=' + search);
     const courses = await res.json();
-    const list = document.getElementById('courses-list');
-    if (courses.length === 0) {
-        list.innerHTML = '<p>Курстар жоқ</p>';
-        return;
-    }
+    const list = document.getElementById('courseList');
+    if (!courses.length) { list.innerHTML = '<p style="color:#888">Курс табылмады</p>'; return; }
     list.innerHTML = courses.map(c => `
-        <div class="course-card">
+        <div class="course-card" onclick="openCourse(${c.id}, '${c.title}')" style="cursor:pointer;">
+            <span class="badge">${c.category || 'Жалпы'}</span>
             <h3>${c.title}</h3>
             <p>${c.description || ''}</p>
-            <p><b>Санат:</b> ${c.category || '-'}</p>
-            <button onclick="deleteCourse(${c.id})">Өшіру</button>
-        </div>
-    `).join('');
+            <p style="color:#e94560; font-size:13px; margin-top:10px;">▶ Сабақтарды көру</p>
+        </div>`).join('');
 }
 
-async function deleteCourse(id) {
-    await fetch(`/api/courses/${id}`, { method: 'DELETE' });
-    loadCourses();
+async function openCourse(id, title) {
+    document.getElementById('modalTitle').textContent = '📖 ' + title;
+    document.getElementById('modal').style.display = 'block';
+    document.body.style.overflow = 'hidden';
+
+    const res = await fetch('/api/courses/' + id + '/lessons');
+    const lessons = await res.json();
+    const list = document.getElementById('lessonList');
+
+    if (!lessons.length) {
+        list.innerHTML = '<p style="color:#888">Сабақтар әлі қосылмаған</p>';
+        return;
+    }
+
+    list.innerHTML = lessons.map(l => `
+        <div style="border:1px solid #eee; border-radius:12px; padding:20px; margin-bottom:20px;">
+            <h3 style="margin-bottom:10px; color:#1a1a2e;">${l.title}</h3>
+            <p style="color:#888; margin-bottom:15px;">${l.content || ''}</p>
+            ${l.video_url ? `
+            <div style="position:relative; padding-bottom:56.25%; height:0; overflow:hidden; border-radius:8px;">
+                <iframe src="${l.video_url}"
+                    style="position:absolute; top:0; left:0; width:100%; height:100%;"
+                    frameborder="0" allowfullscreen></iframe>
+            </div>` : ''}
+        </div>`).join('');
 }
 
-document.getElementById('search-form').onsubmit = (e) => {
-    e.preventDefault();
-    loadCourses(document.getElementById('search').value);
-};
-
-document.getElementById('course-form').onsubmit = async (e) => {
-    e.preventDefault();
-    const res = await fetch('/api/courses', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-            title: document.getElementById('title').value,
-            description: document.getElementById('description').value,
-            category: document.getElementById('category').value,
-            user_id: 1
-        })
-    });
-    const data = await res.json();
-    document.getElementById('message').innerHTML =
-        res.ok ? '<p class="success">Курс қосылды!</p>' : '<p class="error">Қате!</p>';
-    if (res.ok) loadCourses();
-};
+function closeModal() {
+    document.getElementById('modal').style.display = 'none';
+    document.body.style.overflow = 'auto';
+}
 
 loadCourses();
 </script>

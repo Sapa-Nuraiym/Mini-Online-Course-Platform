@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+{% block title %}Жеке кабинет — EduPlatform{% endblock %}
+{% block content %}
+<div class="container">
+    <div class="card">
+        <div class="profile-header">
+            <div class="avatar" id="avatarLetter">?</div>
+            <div class="profile-info">
+                <h2 id="profileName">Жүктелуде...</h2>
+                <p id="profileEmail"></p>
+                <span class="badge" id="profileRole"></span>
+            </div>
+        </div>
+        <div id="profileMsg"></div>
+        <a href="/courses" class="btn" style="width:auto; padding:12px 25px; margin-right:10px;">📚 Курстарға өту</a>
+        <button onclick="doLogout()" style="width:auto; padding:12px 25px; background: #888;">Шығу</button>
+    </div>
+</div>
+<script>
+async function loadProfile() {
+    const res = await fetch('/api/auth/me');
+    if (!res.ok) { window.location.href = '/login'; return; }
+    const user = await res.json();
+    document.getElementById('avatarLetter').textContent = user.username[0].toUpperCase();
+    document.getElementById('profileName').textContent = user.username;
+    document.getElementById('profileEmail').textContent = user.email;
+    document.getElementById('profileRole').textContent = user.role === 'teacher' ? '👨‍🏫 Мұғалім' : '👨‍🎓 Студент';
+}
+async function doLogout() {
+    await fetch('/api/auth/logout', {method: 'POST'});
+    window.location.href = '/login';
+}
+loadProfile();
+</script>
+{% endblock %}

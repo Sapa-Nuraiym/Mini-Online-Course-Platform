@@ -1,6 +1,25 @@
 {% extends "base.html" %}
+{% block title %}Басты бет — EduPlatform{% endblock %}
 {% block content %}
-<h1>Mini Online Course Platform</h1>
-<p>Қош келдіңіз! Білім алу платформасына хош келдіңіз.</p>
-<a href="/courses-page"><button>Курстарды көру</button></a>
+<div class="container">
+    <div class="hero">
+        <h1>🎓 EduPlatform</h1>
+        <p>Онлайн білім алудың ең оңай жолы</p>
+        <a href="/register" class="btn">Тегін бастау →</a>
+    </div>
+    <div class="stats">
+        <div class="stat-card">
+            <div class="number">50+</div>
+            <div class="label">Курс</div>
+        </div>
+        <div class="stat-card">
+            <div class="number">200+</div>
+            <div class="label">Студент</div>
+        </div>
+        <div class="stat-card">
+            <div class="number">10+</div>
+            <div class="label">Мұғалім</div>
+        </div>
+    </div>
+</div>
 {% endblock %}

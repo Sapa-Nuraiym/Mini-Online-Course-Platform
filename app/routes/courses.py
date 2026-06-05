@@ -100,3 +100,18 @@ def delete_course(id):
     db.session.delete(course)
     db.session.commit()
     return jsonify({'message': 'Курс өшірілді'})
+from app.models import Lesson
+
+@courses_bp.route('/courses/<int:id>/lessons', methods=['GET'])
+def get_lessons(id):
+    course = Course.query.get(id)
+    if not course:
+        return jsonify({'error': 'Курс табылмады'}), 404
+    lessons = Lesson.query.filter_by(course_id=id).order_by(Lesson.order_num).all()
+    return jsonify([{
+        'id': l.id,
+        'title': l.title,
+        'content': l.content,
+        'video_url': l.video_url,
+        'order_num': l.order_num
+    } for l in lessons])
